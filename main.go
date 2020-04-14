@@ -52,9 +52,10 @@ func main() {
 		log.Fatalf("%v does not exist", *input)
 	}
 
-	// Create a backend receiver
+	//
+	// Step 1: Create the execution backend and load the model
+	//
 	backend := gorgonnx.NewGraph()
-	// Create a model and set the execution backend
 	m := onnx.NewModel(backend)
 
 	// read the onnx model
@@ -67,7 +68,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Set the first input, the number depends of the model
+
+	//
+	// Step 2: Create model inputs
+	//
+	// The number of inputs depends on the model.
+
 	inputStream, err := os.Open(*input)
 	if err != nil {
 		log.Fatal(err)
@@ -88,6 +94,10 @@ func main() {
 		log.Fatal(err)
 	}
 	m.SetInput(0, inputT)
+
+	//
+	// Step 3: Run the model
+	//
 	start := time.Now()
 	err = backend.Run()
 	if err != nil {
@@ -98,6 +108,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//
+	// Step 4: Gather results
+	//
 	result := classify(softmax(computedOutputT[0].Data().([]float32)))
 	fmt.Printf("%v / %2.2f%%\n", result[0].emotion, result[0].weight*100)
 	fmt.Printf("%v / %2.2f%%\n", result[1].emotion, result[1].weight*100)
